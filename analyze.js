@@ -10,6 +10,15 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 
 function runAnalysis(){
+	//find orientation
+	orient = ""
+	if ($('.main-board').find("coords")[0].classList.length > 1){
+		orient = 'black'
+	} else {
+		orient = 'white'
+	}
+
+	//chess board
 	let theBoard = $('.main-board').find("cg-board")
 	if (theBoard.length){		
 		//find translate multiple
@@ -31,7 +40,7 @@ function runAnalysis(){
 			var piece = new Piece(col, name, x, y);
 			piecesArr.push(piece);
 		}
-		var looseHanging = getLooseHanging(piecesArr);
+		var looseHanging = getLooseHanging(piecesArr, orient);
 		
 		//bring 'looseHang' info back to the board
 		console.log(looseHanging);
@@ -83,9 +92,9 @@ class Piece {
 } 
 
 
-function getLooseHanging(pieces){
+function getLooseHanging(pieces, orient){
 	init(pieces); //make position
-	annotateWeaknesses(); //annotate pieces
+	annotateWeaknesses(orient); //annotate pieces
 
 	//go through the board and return hanging and loose pieces
 	loosePieces = []
@@ -119,7 +128,7 @@ function init(pieces){
 }
 
 
-function annotateWeaknesses(){
+function annotateWeaknesses(orient){
 	//check what piece it is -> send it in the proper directions
 	for (var i = 0; i < 8; i++){
 		for (var j = 0; j < 8; j++){
@@ -176,7 +185,7 @@ function annotateWeaknesses(){
 					break;
 
 				case 'pawn':
-					if (piece.colour == 'white'){
+					if (piece.colour == orient){
 						annotateNext(piece.colour, piece.x - 1, piece.y - 1, '-');
 						annotateNext(piece.colour, piece.x + 1, piece.y - 1, '-');
 					} else {
