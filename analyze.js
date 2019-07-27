@@ -9,36 +9,57 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 
 
 
-
-
-
 function runAnalysis(){
-	let theBoard = $('.board').find('.pieces')
-	if (theBoard.length){
-		//alert("Analyzing position: " + theBoard.children()[0].className.split(" ")[1])
-		//alert("The white king is on: " + theBoard.find("#piece-5").attr("class").split(" ")[1])
-		
-		var arr = []
-		theBoard.children().toArray().forEach(function(c){
-			var col = cdcMap[c.id][0];
-			var name = cdcMap[c.id][1];
-			var conv = convertCoodinates(c.className.split(" ")[1].split("-")[1]);
-			var x = conv[0];
-			var y = conv[1];
+	let theBoard = $('.main-board').find("cg-board")
+	if (theBoard.length){		
+		//find translate multiple
+		multiple = Math.max(...theBoard.children().toArray().map(p => getXTranslate(p, 1))) / 7
 
-			var piece = new Piece(col, name, x, y)
-			arr.push(piece)
-		});
-		var looseHang = getLooseHanging(arr);
+		var piecesArr = [];
+		for (var i = 0; i < theBoard.children().length; i++){
+			c = theBoard.children()[i];
+
+			if (c.classList[0] == 'last-move' || c.classList[0] == 'move-dest'){
+				continue;
+			}
+
+			var col = c.classList[0];
+			var name = c.classList[1];
+			var x = getXTranslate(c, multiple); 				//c.cgKey.charCodeAt(0) - 97
+			var y = getYTranslate(c, multiple);					//8 - parseInt(c.cgKey.charAt(1))
+
+			var piece = new Piece(col, name, x, y);
+			piecesArr.push(piece);
+		}
+		var looseHanging = getLooseHanging(piecesArr);
 		
 		//bring 'looseHang' info back to the board
-		console.log(looseHang)
+		console.log(looseHanging);
+
+		looseHanging['loose'].forEach(function(piece){
+			var x = piece.x * multiple
+			var y = piece.y * multiple
+			theBoard.append("<square class='hanging' style='transform: translate("+x+"px, "+y+"px); background-color:rgba(255,165,0,0.7)'></square>")
+		});
+		looseHanging['hanging'].forEach(function(piece){
+			var x = piece.x * multiple
+			var y = piece.y * multiple
+			theBoard.append("<square class='hanging' style='transform: translate("+x+"px, "+y+"px); background-color:rgba(255,0,0,0.7)'></square>")
+		});
 		
 
+
 	} else {
-		alert('You are not in a game!')
+		alert('You are not in a game!');
 	}
 }
+
+
+
+
+
+
+
 
 
 
@@ -48,7 +69,7 @@ function runAnalysis(){
 ///////////////////////////////////////////////////////////////////////////////////////////
 //CHESS STUFF
 
-chessBoard = [];
+var chessBoard = [];
 
 class Piece {
   constructor(colour, name, x, y) {
@@ -88,6 +109,7 @@ function getLooseHanging(pieces){
 
 
 function init(pieces){
+	chessBoard = []
 	for (var i = 0; i < 8; i++){
 		chessBoard.push([null, null, null, null, null, null, null, null,]);
 	}
@@ -154,7 +176,7 @@ function annotateWeaknesses(){
 					break;
 
 				case 'pawn':
-					if (piece.colour == 'w'){
+					if (piece.colour == 'white'){
 						annotateNext(piece.colour, piece.x - 1, piece.y - 1, '-');
 						annotateNext(piece.colour, piece.x + 1, piece.y - 1, '-');
 					} else {
@@ -240,39 +262,13 @@ function convertCoodinates(cdcStr){
 	return [x,y]
 }
 
-var cdcMap = {
-	'piece-1' : ['w', 'rook'],
-	'piece-2' : ['w', 'knight'],
-	'piece-3' : ['w', 'bishop'],
-	'piece-4' : ['w', 'queen'],
-	'piece-5' : ['w', 'king'],
-	'piece-6' : ['w', 'bishop'],
-	'piece-7' : ['w', 'knight'],
-	'piece-8' : ['w', 'rook'],
-	'piece-9' : ['w', 'pawn'],
-	'piece-10' : ['w', 'pawn'],
-	'piece-11' : ['w', 'pawn'],
-	'piece-12' : ['w', 'pawn'],
-	'piece-13' : ['w', 'pawn'],
-	'piece-14' : ['w', 'pawn'],
-	'piece-15' : ['w', 'pawn'],
-	'piece-16' : ['w', 'pawn'],
-	'piece-17' : ['b', 'pawn'],
-	'piece-18' : ['b', 'pawn'],
-	'piece-19' : ['b', 'pawn'],
-	'piece-20' : ['b', 'pawn'],
-	'piece-21' : ['b', 'pawn'],
-	'piece-22' : ['b', 'pawn'],
-	'piece-23' : ['b', 'pawn'],
-	'piece-24' : ['b', 'pawn'],
-	'piece-25' : ['b', 'rook'],
-	'piece-26' : ['b', 'knight'],
-	'piece-27' : ['b', 'bishop'],
-	'piece-28' : ['b', 'queen'],
-	'piece-29' : ['b', 'king'],
-	'piece-30' : ['b', 'bishop'],
-	'piece-31' : ['b', 'knight'],
-	'piece-32' : ['b', 'rook'],
+
+function getXTranslate(piece, multiple){
+	return parseInt(piece.style.cssText.split('(')[1].split('p')[0]) / multiple;
+}
+
+function getYTranslate(piece, multiple){
+	return parseInt(piece.style.cssText.split(' ')[2].split('p')[0]) / multiple;
 }
 
 
