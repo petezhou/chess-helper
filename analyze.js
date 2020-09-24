@@ -1,6 +1,3 @@
-//ideally: button toggles listener on and off -> another listens for board changes
-
-
 //listens to analyze button press
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	if( request.message === 'start') {
@@ -8,22 +5,19 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     }
 });
 
+
 //listens to ctrl+shift+L keypress 
 if (window == top) {
 	window.addEventListener('keyup', doKeyPress, false); //add the keyboard handler
 }
 trigger_key = 72; 
+
+
 function doKeyPress(e){
 	if (e.shiftKey && e.keyCode == trigger_key){ 
 		runAnalysis();
 	}
 }
-
-
-
-
-
-
 
 
 function runAnalysis(){
@@ -81,9 +75,6 @@ function runAnalysis(){
 }
 
 
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 //CHESS STUFF
 
@@ -108,6 +99,7 @@ class Piece {
     	return Math.sum(...this.attackerVals);
     }
 */}
+
   isDefended = function(){
   		var total = 0;
     	this.attackerVals.sort();
